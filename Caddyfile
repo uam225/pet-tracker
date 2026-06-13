@@ -1,0 +1,46 @@
+pets.umair-arshad.com {
+
+    # --- Security headers applied to all responses ---
+    header {
+        # Prevent MIME type sniffing
+        X-Content-Type-Options nosniff
+        # Disallow framing entirely (not embedded in iframes)
+        X-Frame-Options DENY
+        # Only send referrer to same origin
+        Referrer-Policy strict-origin-when-cross-origin
+        # Basic XSS protection for older browsers
+        X-XSS-Protection "1; mode=block"
+        # Enforce HTTPS for 1 year (applied after first visit)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Remove server identification header
+        -Server
+    }
+
+    # --- API: proxy to FastAPI backend ---
+    handle /api/* {
+        reverse_proxy backend:8000 {
+            # Pass the real client IP to the backend for logging
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # --- Frontend: serve React SPA static files ---
+    # All non-API paths fall through to the SPA.
+    # try_files ensures React Router handles client-side navigation.
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+
+    # --- Logging ---
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+        format json
+    }
+}

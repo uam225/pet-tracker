@@ -1,0 +1,19 @@
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Database
+sqlalchemy[asyncio]==2.0.30
+aiosqlite==0.20.0
+alembic==1.13.1
+
+# Validation and settings
+pydantic[email]==2.7.1
+pydantic-settings==2.2.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Required for FastAPI form parsing (used by login endpoint)
+python-multipart==0.0.9

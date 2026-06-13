@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Apply Inter as the default body font (declared in tailwind config as sans) */
+  body {
+    @apply text-forest-900;
+  }
+
+  /* Use Plus Jakarta Sans for headings */
+  h1, h2, h3, h4 {
+    @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /* Safe area padding for devices with home indicator */
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* 3px border width utility not in Tailwind by default */
+  .border-3 {
+    border-width: 3px;
+  }
+}
