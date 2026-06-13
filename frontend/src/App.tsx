@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
-import { petsApi } from '@/api'
+import { petsApi, authApi } from '@/api'
 import { assignPetColors } from '@/utils/petColors'
 import { LoadingScreen } from '@/components/ui'
 
@@ -43,12 +43,50 @@ function RequireSetup({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+// ─── Login route ────────────────────────────────────────────────────────────
+// Renders the login form, but redirects away from it in two cases:
+//   - Already authenticated: go straight to the dashboard.
+//   - No accounts exist yet (first-run, count === 0): nobody can log in,
+//     so send the visitor to the setup wizard's account creation step.
+//
+// /api/auth/status is publicly accessible (no auth required), so this check
+// is safe to run before a session exists.
+
+function LoginRoute() {
+  const { user, isLoading: authLoading } = useAuth()
+  const { data: regStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ['auth-status'],
+    queryFn:  authApi.status,
+    enabled:  !authLoading && !user,
+  })
+
+  if (authLoading) return <LoadingScreen />
+  if (user) return <Navigate to="/dashboard" replace />
+  if (statusLoading) return <LoadingScreen />
+  if (regStatus?.current_count === 0) return <Navigate to="/setup" replace />
+
+  return <LoginPage />
+}
+
 // ─── Root redirect ────────────────────────────────────────────────────────────
+// Used for "/" and any unmatched path. Mirrors LoginRoute's first-run check
+// so a fresh deployment lands on the setup wizard rather than a login form
+// that no account can satisfy.
 
 function RootRedirect() {
-  const { user, isLoading } = useAuth()
-  if (isLoading) return <LoadingScreen />
-  return <Navigate to={user ? '/dashboard' : '/login'} replace />
+  const { user, isLoading: authLoading } = useAuth()
+  const { data: regStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ['auth-status'],
+    queryFn:  authApi.status,
+    enabled:  !authLoading && !user,
+  })
+
+  if (authLoading) return <LoadingScreen />
+  if (user) return <Navigate to="/dashboard" replace />
+  if (statusLoading) return <LoadingScreen />
+  if (regStatus?.current_count === 0) return <Navigate to="/setup" replace />
+
+  return <Navigate to="/login" replace />
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -56,13 +94,13 @@ function RootRedirect() {
 export default function App() {
   return (
     <Routes>
-      {/* Public */}
-      <Route path="/login" element={<LoginPage />} />
+      {/* Public: redirects to /setup on first run (no accounts) or /dashboard if logged in */}
+      <Route path="/login" element={<LoginRoute />} />
 
-      {/* First-run wizard (requires login, allows no pets) */}
-      <Route path="/setup" element={
-        <RequireAuth><SetupWizard /></RequireAuth>
-      } />
+      {/* First-run wizard. Reachable without authentication so the very first
+          account can be created. SetupWizard itself determines the correct
+          starting step based on auth state and registration status. */}
+      <Route path="/setup" element={<SetupWizard />} />
 
       {/* Protected app routes */}
       <Route path="/dashboard" element={
@@ -86,3 +124,6 @@ export default function App() {
     </Routes>
   )
 }
+Done
+2. frontend/src/pages/setup/SetupWizard.tsx — three edits
+Edit A — replace the import block at the top of the file:

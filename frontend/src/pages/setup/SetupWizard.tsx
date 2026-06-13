@@ -1,9 +1,10 @@
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { authApi, petsApi } from '@/api'
 import { useAuth } from '@/context/AuthContext'
 import { ApiRequestError } from '@/api/client'
-import { Button, Input } from '@/components/ui'
+import { Button, Input, LoadingScreen } from '@/components/ui'
 import { ChevronRight } from 'lucide-react'
 import type { Pet, PetCreate, ScheduleSlotUpdate } from '@/types/api'
 
@@ -305,8 +306,38 @@ function SchedulesStep({ dogs, onDone }: { dogs: Pet[]; onDone: () => void }) {
 
 export function SetupWizard() {
   const navigate = useNavigate()
-  const [step, setStep] = useState<Step>('account')
+  const { user, isLoading: authLoading } = useAuth()
+
+  // Registration status determines where an already-authenticated visitor
+  // should resume: 'second-account' if the second account hasn't been
+  // created yet, otherwise 'pets'. Unauthenticated visitors always start
+  // at 'account' (this is the only reachable path to create the first
+  // account on a fresh deployment).
+  const { data: regStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ['auth-status'],
+    queryFn:  authApi.status,
+    enabled:  !authLoading,
+  })
+
+  const [step, setStep] = useState<Step | null>(null)
   const [dogs, setDogs] = useState<Pet[]>([])
+
+  useEffect(() => {
+    if (step !== null) return       // Already determined; don't override.
+    if (authLoading || statusLoading) return
+
+    if (!user) {
+      setStep('account')
+    } else if (regStatus?.is_open) {
+      setStep('second-account')
+    } else {
+      setStep('pets')
+    }
+  }, [authLoading, statusLoading, user, regStatus, step])
+
+  // Wait until the starting step is known before rendering the wizard shell,
+  // to avoid a flash of the wrong step.
+  if (step === null) return <LoadingScreen />
 
   const STEPS: Step[] = ['account', 'second-account', 'pets', 'schedules']
   const stepIndex = STEPS.indexOf(step)
