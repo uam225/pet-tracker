@@ -169,7 +169,7 @@ export function LoadingScreen({ message = 'Loading…' }: { message?: string }) 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 export function EmptyState({ icon: Icon, title, body, action }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number | string; className?: string }>
   title: string
   body: string
   action?: ReactNode
