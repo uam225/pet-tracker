@@ -124,6 +124,3 @@ export default function App() {
     </Routes>
   )
 }
-Done
-2. frontend/src/pages/setup/SetupWizard.tsx — three edits
-Edit A — replace the import block at the top of the file:
