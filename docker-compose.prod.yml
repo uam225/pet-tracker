@@ -22,7 +22,7 @@ services:
       - "8000"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -34,7 +34,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       # Named volume shared with Caddy for static file serving
-      - frontend_build:/app/dist
+      - frontend_build:/srv
     # This container exits after building. Caddy serves the output.
     restart: "no"
 

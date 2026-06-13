@@ -21,4 +21,4 @@ COPY --from=builder /app/dist ./dist
 
 # Default command: copy build output to the shared volume on startup.
 # docker-compose.prod.yml maps /app/dist to the frontend_build named volume.
-CMD ["sh", "-c", "cp -r /app/dist/. /app/dist/"]
+CMD ["sh", "-c", "cp -r /app/dist/. /srv/"]
