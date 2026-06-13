@@ -206,4 +206,8 @@ async def update_schedule_slot(
         )
 
     await db.flush()
+    # Reload to pick up the server-generated updated_at value, which flush()
+    # expires (onupdate=func.now()). Without this, model_validate triggers a
+    # lazy-load attribute access outside the async greenlet context.
+    await db.refresh(slot)
     return ScheduleSlotResponse.model_validate(slot)

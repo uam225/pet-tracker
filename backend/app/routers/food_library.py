@@ -193,6 +193,8 @@ async def create_ingredient(
     )
     db.add(ingredient)
     await db.flush()
+    # Reload to pick up server-generated created_at/updated_at values.
+    await db.refresh(ingredient)
     return IngredientResponse.model_validate(ingredient)
 
 
@@ -222,6 +224,8 @@ async def update_ingredient(
         ingredient.is_common_allergen = payload.is_common_allergen
 
     await db.flush()
+    # Reload to pick up the server-generated updated_at value (onupdate).
+    await db.refresh(ingredient)
     return IngredientResponse.model_validate(ingredient)
 
 
