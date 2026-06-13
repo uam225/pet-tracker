@@ -14,6 +14,11 @@ pydantic-settings==2.2.1
 # Authentication
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+# passlib 1.7.4 (2020) reads bcrypt.__about__.__version__, which was removed
+# in bcrypt 4.1.0 (2023). Without this pin, pip installs the latest bcrypt
+# and every hash/verify call raises AttributeError, surfacing as a 500 on
+# registration and login. Pin to the last 4.x release with __about__ intact.
+bcrypt==4.0.1
 
 # Required for FastAPI form parsing (used by login endpoint)
 python-multipart==0.0.9
