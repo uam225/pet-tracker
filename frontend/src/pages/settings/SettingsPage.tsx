@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { ApiRequestError } from '@/api/client'
 import { Modal, Card, Button, Input } from '@/components/ui'
 import { PetAvatar } from '@/components/ui/PetAvatar'
-import { ChevronLeft, ChevronRight, LogOut, User, Edit2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LogOut, User, Edit2, Trash2 } from 'lucide-react'
 import { formatTime, MEAL_TYPE_LABELS } from '@/utils/petColors'
 import type { Pet, ScheduleSlot } from '@/types/api'
 
@@ -126,6 +126,52 @@ function EditScheduleModal({ pet, onClose }: { pet: Pet; onClose: () => void }) 
   )
 }
 
+// ─── Remove pet confirmation modal ────────────────────────────────────────────
+
+function RemovePetModal({ pet, onClose }: { pet: Pet; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [error, setError] = useState('')
+
+  const mutation = useMutation({
+    mutationFn: () => petsApi.delete(pet.id),
+    onSuccess: () => {
+      // Refresh both the settings list and any dashboard/feed views.
+      qc.invalidateQueries({ queryKey: ['pets'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      onClose()
+    },
+    onError: (e: unknown) =>
+      setError(e instanceof ApiRequestError ? e.detail : 'Failed to remove pet.'),
+  })
+
+  return (
+    <Modal isOpen onClose={onClose} title={`Remove ${pet.name}?`}>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-stone-500">
+          {pet.name} will be removed from your active pets and will no longer appear
+          when logging meals or health observations. Existing historical records are
+          preserved and not deleted.
+        </p>
+        {error && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="danger"
+            size="lg"
+            className="w-full"
+            loading={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            Remove {pet.name}
+          </Button>
+          <Button variant="secondary" size="lg" className="w-full" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 // ─── Settings page ────────────────────────────────────────────────────────────
 
 export function SettingsPage() {
@@ -134,6 +180,7 @@ export function SettingsPage() {
   const qc = useQueryClient()
   const [editPet, setEditPet]         = useState<Pet | null>(null)
   const [editSchedule, setEditSchedule] = useState<Pet | null>(null)
+  const [removePet, setRemovePet]     = useState<Pet | null>(null)
 
   const { data: pets = [] } = useQuery({ queryKey: ['pets'], queryFn: petsApi.list })
   const activePets = pets.filter(p => !p.deleted_at)
@@ -182,6 +229,9 @@ export function SettingsPage() {
                       Schedule <ChevronRight size={11} />
                     </button>
                   )}
+                  <button onClick={() => setRemovePet(pet)} className="flex items-center gap-1 text-xs text-red-500">
+                    <Trash2 size={11} /> Remove
+                  </button>
                 </div>
               </div>
             ))}
@@ -213,6 +263,7 @@ export function SettingsPage() {
       {/* Modals */}
       {editPet && <EditPetModal pet={editPet} onClose={() => setEditPet(null)} />}
       {editSchedule && <EditScheduleModal pet={editSchedule} onClose={() => setEditSchedule(null)} />}
+      {removePet && <RemovePetModal pet={removePet} onClose={() => setRemovePet(null)} />}
     </div>
   )
 }

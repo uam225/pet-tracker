@@ -327,13 +327,22 @@ export function SetupWizard() {
     if (authLoading || statusLoading) return
 
     if (!user) {
+      // No session. Only allow account creation if registration is still
+      // open. If both accounts already exist, an unauthenticated visitor
+      // here (stale bookmark, PWA start_url, cleared history) must be sent
+      // to the login screen rather than shown a sign-up form that will
+      // always fail with "maximum accounts reached".
+      if (regStatus && !regStatus.is_open) {
+        navigate('/login', { replace: true })
+        return
+      }
       setStep('account')
     } else if (regStatus?.is_open) {
       setStep('second-account')
     } else {
       setStep('pets')
     }
-  }, [authLoading, statusLoading, user, regStatus, step])
+  }, [authLoading, statusLoading, user, regStatus, step, navigate])
 
   // Wait until the starting step is known before rendering the wizard shell,
   // to avoid a flash of the wrong step.

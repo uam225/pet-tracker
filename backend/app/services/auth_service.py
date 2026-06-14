@@ -37,8 +37,18 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Return True if plain_password matches the stored bcrypt hash."""
-    return _pwd_context.verify(plain_password, hashed_password)
+    """
+    Return True if plain_password matches the stored bcrypt hash.
+
+    Returns False rather than raising if the stored hash is malformed or the
+    backend rejects it. A corrupt hash should fail authentication, not crash
+    the request with a 500 (which would also leak information about the state
+    of the stored credential).
+    """
+    try:
+        return _pwd_context.verify(plain_password, hashed_password)
+    except ValueError:
+        return False
 
 
 def create_access_token(user_id: int) -> str:
@@ -175,7 +185,11 @@ async def authenticate_user(
     user = result.scalar_one_or_none()
 
     # Use a dummy hash when user not found to prevent timing attacks.
-    dummy_hash = "$2b$12$invalidhashvaluethatwillnevermatch000000000000000000000"
+    # This must be a *valid* bcrypt hash so verify_password runs the full
+    # hashing routine and returns False, rather than raising ValueError on a
+    # malformed string (which would turn a normal failed login into a 500 and
+    # leak, via the differing response, whether the email exists).
+    dummy_hash = "$2b$12$zKlIsoufyEtsd.uxiTj.IuQmcdXkaefnm63AL56BgXUCcSJVy6Jpe"
     password_to_check = user.password_hash if user else dummy_hash
     password_valid = verify_password(password, password_to_check)
 
