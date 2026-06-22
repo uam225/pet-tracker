@@ -149,15 +149,21 @@ function IngredientPicker({ allIngredients, selected, onChange, onCreateRequest 
             </button>
           ))}
 
-          {/* No results: offer inline creation */}
-          {filtered.length === 0 && (
+          {/* Offer inline creation whenever the typed name doesn't exactly
+              match an existing ingredient. Showing this alongside partial
+              matches lets you create e.g. "Salmon" even though "Salmon Oil"
+              already exists. Trimmed, case-insensitive comparison. */}
+          {search.trim() !== '' &&
+            !allIngredients.some(
+              i => i.name.toLowerCase().trim() === search.toLowerCase().trim()
+            ) && (
             <button
-              onClick={() => { onCreateRequest(search); setSearch('') }}
+              onClick={() => { onCreateRequest(search.trim()); setSearch('') }}
               className="flex items-center gap-2 px-3 py-2 text-left hover:bg-forest-50"
             >
               <Plus size={12} className="text-forest-500 flex-shrink-0" />
               <span className="text-sm text-forest-600">
-                Create "<span className="font-medium">{search}</span>"
+                Create "<span className="font-medium">{search.trim()}</span>"
               </span>
             </button>
           )}
