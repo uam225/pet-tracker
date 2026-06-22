@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..database import get_db
-from ..models.food import FoodItemIngredient
+from ..models.food import FoodItem, FoodItemIngredient
 from ..models.meal_log import MealLog, MealLogItem
 from ..models.user import User
 from ..schemas.meal_log import (
@@ -44,9 +44,10 @@ async def _load_log(log_id: int, db: AsyncSession) -> MealLog:
         select(MealLog)
         .where(MealLog.id == log_id, MealLog.deleted_at.is_(None))
         .options(
-            selectinload(MealLog.items).selectinload(MealLogItem.food_item).selectinload(
-                "ingredients"
-            ).selectinload(FoodItemIngredient.ingredient)
+            selectinload(MealLog.items)
+            .selectinload(MealLogItem.food_item)
+            .selectinload(FoodItem.ingredients)
+            .selectinload(FoodItemIngredient.ingredient)
         )
     )
     log = result.scalar_one_or_none()
@@ -78,7 +79,7 @@ async def list_meal_logs(
         .options(
             selectinload(MealLog.items)
             .selectinload(MealLogItem.food_item)
-            .selectinload("ingredients")
+            .selectinload(FoodItem.ingredients)
             .selectinload(FoodItemIngredient.ingredient)
         )
         .order_by(MealLog.fed_at.desc())
