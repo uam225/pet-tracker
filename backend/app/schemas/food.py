@@ -4,12 +4,12 @@ from datetime import datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+from .common import ResponseBase
 
 
 # --- Food category schemas (read-only in MVP) ---
 
-class FoodCategoryResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class FoodCategoryResponse(ResponseBase):
 
     id: int
     name: str
@@ -35,8 +35,7 @@ class IngredientUpdate(BaseModel):
     is_common_allergen: Optional[bool] = None
 
 
-class IngredientResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class IngredientResponse(ResponseBase):
 
     id: int
     name: str
@@ -55,8 +54,7 @@ class FoodItemIngredientCreate(BaseModel):
     notes: Optional[str] = Field(default=None, max_length=500)
 
 
-class FoodItemIngredientResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class FoodItemIngredientResponse(ResponseBase):
 
     id: int
     ingredient_id: int
@@ -87,8 +85,7 @@ class FoodItemUpdate(BaseModel):
     change_reason: Optional[str] = Field(default=None, max_length=500)
 
 
-class FoodItemResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class FoodItemResponse(ResponseBase):
 
     id: int
     name: str
@@ -121,8 +118,7 @@ class FoodItemNewVersionRequest(BaseModel):
     )
 
 
-class FoodItemEditHistoryResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class FoodItemEditHistoryResponse(ResponseBase):
 
     id: int
     food_item_id: int

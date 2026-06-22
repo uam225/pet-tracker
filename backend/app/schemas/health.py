@@ -4,12 +4,12 @@ from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+from .common import ResponseBase
 
 
 # --- Symptom schemas ---
 
-class SymptomResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class SymptomResponse(ResponseBase):
 
     id: int
     name: str
@@ -52,15 +52,13 @@ class HealthObservationUpdate(BaseModel):
     notes: Optional[str] = Field(default=None, max_length=2000)
 
 
-class HealthObservationSymptomResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class HealthObservationSymptomResponse(ResponseBase):
 
     symptom: SymptomResponse
     notes: Optional[str]
 
 
-class HealthObservationResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class HealthObservationResponse(ResponseBase):
 
     id: int
     pet_id: int
@@ -86,8 +84,7 @@ class MissedSlot(BaseModel):
     window_end: str
 
 
-class PetDashboardSummary(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class PetDashboardSummary(ResponseBase):
 
     pet_id: int
     pet_name: str

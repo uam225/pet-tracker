@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from .common import ResponseBase
 
 
 class UserCreate(BaseModel):
@@ -20,8 +21,7 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class UserResponse(ResponseBase):
 
     id: int
     name: str

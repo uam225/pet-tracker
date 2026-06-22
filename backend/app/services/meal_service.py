@@ -205,11 +205,12 @@ async def update_meal_log(
     db: AsyncSession,
 ) -> MealLog:
     """
-    In-place update of a meal log entry within the correction window.
+    In-place update of a meal log entry.
 
-    Only the user who created the entry may update it.
-    Only permitted within CORRECTION_WINDOW_SECONDS of creation.
-    After the window, use create_correction_entry instead.
+    Either household user may edit any entry, at any time. The audit-trail
+    correction-window model was dropped as unnecessary for a two-person
+    household: a mis-logged meal should simply be fixable. Deletes remain
+    soft (deleted_at) so an accidental change is recoverable.
     """
     result = await db.execute(
         select(MealLog)
@@ -221,24 +222,31 @@ async def update_meal_log(
     if log is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meal log not found.")
 
-    if log.logged_by != requesting_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the user who created this entry may edit it.",
-        )
-
-    if not log.is_within_correction_window:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "The correction window for this entry has elapsed. "
-                "Submit a correction entry instead."
-            ),
-        )
-
     # Apply partial updates
     if payload.fed_at is not None:
         log.fed_at = payload.fed_at
+
+        # Recompute deviation against the pet's schedule, since the time moved.
+        # Mirrors create_meal_log: only dogs with a non-ad_hoc slot have a
+        # deviation; ad-hoc/cat meals keep NULL deviation fields.
+        pet = await _get_pet_or_404(log.pet_id, db)
+        if pet.species == "dog" and log.meal_type != "ad_hoc":
+            slot = next(
+                (s for s in pet.schedule_slots if s.meal_type == log.meal_type),
+                None,
+            )
+            if slot is not None:
+                fed_date = payload.fed_at.date()
+                log.scheduled_window_start = datetime.combine(
+                    fed_date, slot.window_start
+                ).replace(tzinfo=timezone.utc)
+                log.scheduled_window_end = datetime.combine(
+                    fed_date, slot.window_end
+                ).replace(tzinfo=timezone.utc)
+                log.deviation_minutes = compute_deviation_minutes(
+                    payload.fed_at, slot.window_start, slot.window_end
+                )
+
     if payload.deviation_reason is not None:
         log.deviation_reason = payload.deviation_reason
     if payload.notes is not None:

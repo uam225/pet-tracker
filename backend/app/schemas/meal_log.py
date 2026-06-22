@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from .common import ResponseBase
 
 from .food import FoodItemResponse
 
@@ -52,8 +53,7 @@ class MealLogCorrection(BaseModel):
     corrects_log_id: int
 
 
-class MealLogItemResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class MealLogItemResponse(ResponseBase):
 
     id: int
     food_item_id: int
@@ -62,8 +62,7 @@ class MealLogItemResponse(BaseModel):
     notes: Optional[str]
 
 
-class MealLogResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class MealLogResponse(ResponseBase):
 
     id: int
     pet_id: int

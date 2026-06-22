@@ -4,6 +4,7 @@ from datetime import date, datetime, time
 from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+from .common import ResponseBase
 
 
 # --- Schedule slot schemas ---
@@ -25,8 +26,7 @@ class ScheduleSlotUpdate(BaseModel):
     reason_required_on_deviation: Optional[bool] = None
 
 
-class ScheduleSlotResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class ScheduleSlotResponse(ResponseBase):
 
     id: int
     meal_type: str
@@ -55,8 +55,7 @@ class PetUpdate(BaseModel):
     weight_kg: Optional[float] = Field(default=None, gt=0, le=200)
 
 
-class PetResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class PetResponse(ResponseBase):
 
     id: int
     name: str
