@@ -13,11 +13,6 @@ export interface RegistrationStatus {
   max_users: number
 }
 
-export interface IngredientCreate {
-  name: string
-  category: IngredientCategory
-  is_common_allergen: boolean
-}
 // ─── Pets ─────────────────────────────────────────────────────────────────────
 
 export type Species = 'dog' | 'cat'
@@ -76,7 +71,7 @@ export interface ScheduleSlotUpdate {
 // ─── Food library ─────────────────────────────────────────────────────────────
 
 export type IngredientCategory =
-  | 'Poultry' | 'Fish' | 'Grain' | 'Dairy'
+  | 'Poultry' | 'Red Meat' | 'Fish' | 'Egg' | 'Grain' | 'Dairy'
   | 'Vegetable' | 'Fruit' | 'Supplement' | 'Other'
 
 export interface FoodCategory {
@@ -92,6 +87,12 @@ export interface Ingredient {
   is_common_allergen: boolean
   created_at: string
   updated_at: string
+}
+
+export interface IngredientCreate {
+  name: string
+  category: IngredientCategory
+  is_common_allergen?: boolean
 }
 
 export interface FoodItemIngredient {

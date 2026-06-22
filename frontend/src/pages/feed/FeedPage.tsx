@@ -6,18 +6,20 @@ import { AppShell } from '@/components/layout/AppShell'
 import { Card, Badge, EmptyState, Fab, SectionHeader } from '@/components/ui'
 import { PetAvatar } from '@/components/ui/PetAvatar'
 import { LogMealModal } from './LogMealModal'
+import { EditMealModal } from './EditMealModal'
 import { MEAL_TYPE_LABELS, formatDeviation, formatDateTime } from '@/utils/petColors'
-import { Utensils, Plus } from 'lucide-react'
+import { Utensils, Plus, Pencil } from 'lucide-react'
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
 import type { MealLog } from '@/types/api'
 
 // ─── Meal log item card ───────────────────────────────────────────────────────
 
-function MealLogCard({ log, petName, petId, petSpecies }: {
+function MealLogCard({ log, petName, petId, petSpecies, onEdit }: {
   log: MealLog
   petName: string
   petId: number
   petSpecies: string
+  onEdit: (log: MealLog) => void
 }) {
   const hasDeviation = log.deviation_minutes !== null && log.deviation_minutes !== 0
 
@@ -34,6 +36,13 @@ function MealLogCard({ log, petName, petId, petSpecies }: {
                 {formatDeviation(log.deviation_minutes!)}
               </Badge>
             )}
+            {/* Edit affordance */}
+            <button
+              onClick={() => onEdit(log)}
+              className="ml-auto flex items-center gap-1 text-xs text-stone-400 hover:text-forest-600 flex-shrink-0"
+            >
+              <Pencil size={12} /> Edit
+            </button>
           </div>
           <p className="text-xs text-stone-400 mt-0.5">{formatDateTime(log.fed_at)}</p>
 
@@ -79,6 +88,7 @@ function dateLabel(isoDate: string): string {
 
 export function FeedPage() {
   const [modalOpen, setModalOpen] = useState(false)
+  const [editingLog, setEditingLog] = useState<MealLog | null>(null)
 
   const { data: pets   = [] } = useQuery({ queryKey: ['pets'],      queryFn: petsApi.list })
   const { data: logs   = [], isLoading } = useQuery({
@@ -122,6 +132,7 @@ export function FeedPage() {
                     petName={pet.name}
                     petId={pet.id}
                     petSpecies={pet.species}
+                    onEdit={setEditingLog}
                   />
                 ) : null
               })}
@@ -135,6 +146,10 @@ export function FeedPage() {
       </Fab>
 
       <LogMealModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+
+      {editingLog && (
+        <EditMealModal log={editingLog} onClose={() => setEditingLog(null)} />
+      )}
     </AppShell>
   )
 }
