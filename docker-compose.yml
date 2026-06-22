@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Development compose file.
 # Hot-reload is enabled for both backend and frontend.
 # The database is stored in ./data on the host machine.

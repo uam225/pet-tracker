@@ -1,15 +1,21 @@
-version: "3.9"
-
 # Production compose file.
 # Caddy handles HTTPS termination and static file serving.
 # The database lives on the persistent disk at /data.
-# Run with: docker compose -f docker-compose.prod.yml up -d
+#
+# Images are pre-built by GitHub Actions and pulled from GHCR; the server
+# does not build. Deploy with:
+#   ./scripts/deploy.sh
+# or manually:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# IMAGE_TAG selects which image version to run. Defaults to 'latest'.
+# To roll back, set IMAGE_TAG to a specific commit SHA, e.g.:
+#   IMAGE_TAG=<sha> docker compose -f docker-compose.prod.yml up -d
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/uam225/pet-tracker-backend:${IMAGE_TAG:-latest}
     volumes:
       - /data:/data
     env_file:
@@ -29,13 +35,12 @@ services:
       start_period: 20s
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/uam225/pet-tracker-frontend:${IMAGE_TAG:-latest}
     volumes:
-      # Named volume shared with Caddy for static file serving
+      # The init container copies the React build into this named volume,
+      # which Caddy then mounts at /srv to serve static files.
       - frontend_build:/srv
-    # This container exits after building. Caddy serves the output.
+    # This container exits after the copy. Caddy serves the output.
     restart: "no"
 
   caddy:
