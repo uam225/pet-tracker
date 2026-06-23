@@ -19,7 +19,8 @@ class FoodCategoryResponse(ResponseBase):
 # --- Ingredient schemas ---
 
 IngredientCategoryLiteral = Literal[
-    "Poultry", "Fish", "Grain", "Dairy", "Vegetable", "Fruit", "Supplement", "Other"
+    "Poultry", "Red Meat", "Fish", "Egg", "Grain", "Dairy",
+    "Vegetable", "Fruit", "Supplement", "Other"
 ]
 
 
