@@ -22,7 +22,9 @@ type LibrarySegment = 'food' | 'ingredients'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const INGREDIENT_CATEGORIES: IngredientCategory[] = [
-  'Poultry', 'Red Meat', 'Fish', 'Egg', 'Grain', 'Dairy', 'Vegetable', 'Fruit', 'Supplement', 'Other',
+  'Poultry', 'Red Meat', 'Fish', 'Egg', 'Organ', 'Bone',
+  'Vegetable', 'Fruit', 'Grain', 'Legume', 'Seeds', 'Herbs',
+  'Oils', 'Dairy', 'Supplement', 'Additive', 'Other',
 ]
 
 // ─── Allergen indicator ───────────────────────────────────────────────────────
